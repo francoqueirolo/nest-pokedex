@@ -14,20 +14,22 @@ export class SeedService {
     private readonly pokemonModel: Model<Pokemon>,
   ) {}
   async executeSeed() {
+    await this.pokemonModel.deleteMany({});
+
     const { data } = await this.axios.get<PokeResponse>(
-      'https://pokeapi.co/api/v2/pokemon?limit=10',
+      'https://pokeapi.co/api/v2/pokemon?limit=650',
     );
 
-    const insertPromsesArray = [];
+    const pokemontToInsert: { name: string; no: number }[] = [];
 
     data.results.forEach(({ name, url }) => {
       const segments = url.split('/');
       const no: number = +segments[segments.length - 2];
 
-      insertPromsesArray.push(this.pokemonModel.create({ name, no }));
+      pokemontToInsert.push({ name, no });
     });
 
-    await Promise.all(insertPromsesArray);
+    await this.pokemonModel.insertMany(pokemontToInsert);
 
     return 'Seed executed';
   }
